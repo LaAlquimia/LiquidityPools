@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cátedra: Piscinas de Liquidez y Rango Concentrado en Uniswap v3 | Semillero de Blockchain UdeA</title>
+  
+  <!-- Tipografía institucional y técnica de alto impacto -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- KaTeX para renderizado matemático formal -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    /* ==========================================================================
+       VARIABLES Y PALETA INSTITUCIONAL UdeA — OPTIMIZADA PARA PROYECTOR (100vw x 100vh)
+       ========================================================================== */
+    :root {
+      --udea-green: #006633;            /* Verde Oficial UdeA */
+      --udea-green-dark: #083e21;       /* Verde Máximo Contraste */
+      --udea-green-light: #e8f5e9;      /* Fondo Verde Suave */
+      --udea-green-tint: #f0fdf4;       /* Tinte suave */
+      --udea-gold: #b45309;             /* Dorado Institucional */
+      --udea-gold-light: #fef3c7;
+      --base-blue: #0052ff;             /* Azul Base Network */
+      --base-blue-light: #eff6ff;
+      
+      --text-main: #090d16;             /* Negro carbón para proyección */
+      --text-muted: #1e293b;            /* Slate 800 de altísima legibilidad */
+      --text-light: #475569;
+      
+      --card-bg: rgba(255, 255, 255, 0.78);
+      --card-border: rgba(255, 255, 255, 0.92);
+      --glass-bg: rgba(255, 255, 255, 0.76);
+      --glass-border: rgba(255, 255, 255, 0.90);
+      --glass-shadow: 0 14px 35px 0 rgba(0, 50, 20, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02);
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #ffffff;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Degradado animado ambiental */
+    .ambient-gradient-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      background: linear-gradient(130deg, 
+        #ffffff 0%, 
+        #f0fdf4 18%, 
+        #e8f5e9 38%, 
+        #fef9c3 58%, 
+        #eff6ff 78%, 
+        #ffffff 100%
+      );
+      background-size: 350% 350%;
+      animation: ambientMovingGradient 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes ambientMovingGradient {
+      0% { background-position: 0% 20%; }
+      50% { background-position: 100% 80%; }
+      100% { background-position: 0% 20%; }
+    }
+
+    .ambient-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.35;
+      animation: floatAmbientOrb 25s ease-in-out infinite alternate;
+    }
+
+    .orb-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(0, 102, 51, 0.28) 0%, rgba(232, 245, 233, 0) 70%);
+      top: -120px;
+      right: -120px;
+      animation-duration: 22s;
+    }
+
+    .orb-2 {
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(0, 82, 255, 0.18) 0%, rgba(219, 234, 254, 0) 70%);
+      bottom: -150px;
+      left: -150px;
+      animation-duration: 28s;
+      animation-direction: alternate-reverse;
+    }
+
+    @keyframes floatAmbientOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, 40px) scale(1.08); }
+      100% { transform: translate(-30px, 60px) scale(0.95); }
+    }
+
+    .top-progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--udea-green) 0%, #10b981 50%, var(--udea-gold) 85%, var(--base-blue) 100%);
+      width: 0%;
+      z-index: 1000;
+      transition: width 0.25s ease;
+    }
+
+    .slide-wrapper {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      z-index: 2;
+      background: transparent;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 26px 52px 20px 52px;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 0.18s ease-out;
+    }
+
+    .slide.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 18px;
+      background: rgba(255, 255, 255, 0.74);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(255, 255, 255, 0.9);
+      border-left: 5px solid var(--udea-green);
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(0, 60, 25, 0.04);
+      flex-shrink: 0;
+      margin-bottom: 10px;
+    }
+
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-logo {
+      height: 44px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .header-text-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-institution {
+      font-size: 14.5px;
+      font-weight: 900;
+      color: var(--udea-green-dark);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .header-subtitle {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    .header-module-badge {
+      background-color: rgba(232, 245, 233, 0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--udea-green-dark);
+      padding: 5px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid rgba(0, 102, 51, 0.25);
+      letter-spacing: 0.3px;
+    }
+
+    .slide-title-group {
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .slide-title {
+      font-size: 27px;
+      font-weight: 900;
+      color: #062817;
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slide-title-tag {
+      font-size: 13px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(0, 102, 51, 0.12);
+      color: var(--udea-green);
+    }
+
+    .slide-subdescription {
+      font-size: 15.5px;
+      color: var(--text-light);
+      margin-top: 3px;
+      font-weight: 500;
+    }
+
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .slide-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .slide-body::-webkit-scrollbar-thumb {
+      background: rgba(0, 102, 51, 0.2);
+      border-radius: 4px;
+    }
+
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 18px;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      margin-top: 8px;
+      flex-shrink: 0;
+      font-size: 13.5px;
+      color: var(--text-light);
+      font-weight: 700;
+    }
+
+    .footer-counter {
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: #ffffff;
+      background: rgba(0, 102, 51, 0.92);
+      padding: 3px 12px;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      height: 100%;
+      align-items: stretch;
+      min-height: 0;
+    }
+
+    .grid-3col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      height: 100%;
+      align-items: stretch;
+      min-height: 0;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255, 255, 255, 0.92);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      box-shadow: 0 10px 30px rgba(0, 50, 20, 0.05);
+      min-height: 0;
+      overflow-y: auto;
+    }
+
+    .card-title {
+      font-size: 19px;
+      font-weight: 900;
+      color: var(--udea-green-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid rgba(203, 213, 225, 0.55);
+      padding-bottom: 6px;
+      flex-shrink: 0;
+    }
+
+    .card-title svg {
+      width: 22px;
+      height: 22px;
+      color: var(--udea-green);
+      flex-shrink: 0;
+    }
+
+    .card-content {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .highlight-card {
+      background: rgba(240, 253, 244, 0.85);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(0, 102, 51, 0.25);
+      border-left: 7px solid var(--udea-green);
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 16px;
+      color: var(--udea-green-dark);
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .alert-card {
+      background: rgba(255, 251, 235, 0.88);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(217, 119, 6, 0.25);
+      border-left: 7px solid var(--udea-gold);
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 15.5px;
+      color: #92400e;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .danger-card {
+      background: rgba(254, 242, 242, 0.88);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(220, 38, 38, 0.25);
+      border-left: 7px solid #dc2626;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 15.5px;
+      color: #991b1b;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .bullet-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .bullet-list li {
+      position: relative;
+      padding-left: 22px;
+      margin-bottom: 8px;
+      font-size: 15.5px;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+
+    .bullet-list li::before {
+      content: "■";
+      position: absolute;
+      left: 2px;
+      color: var(--udea-green);
+      font-size: 13px;
+      top: 2px;
+    }
+
+    .bullet-list strong {
+      color: var(--text-main);
+      font-weight: 800;
+    }
+
+    .code-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .code-wrapper {
+      background-color: #0f172a;
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #f8fafc;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-y: auto;
+      border: 2px solid #334155;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .code-header {
+      background: #1e293b;
+      padding: 7px 14px;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      border: 2px solid #334155;
+      border-bottom: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .code-header-title {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+
+    .code-header-badge {
+      background: #0f172a;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    .code-container .code-wrapper {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    .code-kw { color: #38bdf8; font-weight: 800; }
+    .code-tp { color: #34d399; font-weight: 800; }
+    .code-fn { color: #fbbf24; font-weight: 700; }
+    .code-cm { color: #94a3b8; font-style: italic; }
+    .code-nm { color: #fb923c; font-weight: 700; }
+
+    .math-formula-box {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1.5px solid rgba(0, 102, 51, 0.28);
+      border-radius: 12px;
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 6px 0;
+    }
+
+    .math-formula-box .formula-caption {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .svg-diagram-card {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .svg-diagram-card svg {
+      width: 100%;
+      height: auto;
+      max-height: 240px;
+    }
+
+    /* Simulador Interactivo */
+    .simulator-container {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 16px;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .sim-controls-panel {
+      background: rgba(255, 255, 255, 0.84);
+      border-radius: 14px;
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .sim-results-panel {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 14px;
+      border: 2px solid #334155;
+      padding: 16px;
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .sim-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sim-field label {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sim-field label span.val {
+      font-family: var(--font-mono);
+      color: var(--udea-green);
+      font-weight: 900;
+    }
+
+    .sim-input-slider {
+      width: 100%;
+      accent-color: var(--udea-green);
+      cursor: pointer;
+    }
+
+    .sim-stat-box {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 10px 14px;
+      border: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sim-stat-label {
+      font-size: 11.5px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .sim-stat-value {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 900;
+      color: #38bdf8;
+      margin-top: 2px;
+    }
+
+    .sim-alert-badge {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Portada Institucional */
+    .cover-slide {
+      padding: 38px 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .cover-header {
+      display: inline-flex;
+      align-items: center;
+      gap: 22px;
+      background: rgba(255, 255, 255, 0.74);
+      backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255, 255, 255, 0.9);
+      border-radius: 18px;
+      padding: 12px 22px;
+      width: fit-content;
+    }
+
+    .cover-logo-img {
+      height: 82px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .cover-inst-meta {
+      border-left: 4px solid var(--udea-green);
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .cover-inst-name {
+      font-size: 21px;
+      font-weight: 900;
+      color: var(--udea-green-dark);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      line-height: 1.15;
+    }
+
+    .cover-inst-fac {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .cover-inst-sem {
+      font-size: 13.5px;
+      font-weight: 900;
+      color: var(--udea-green);
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .cover-center {
+      margin: 10px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(28px);
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
+      border-radius: 22px;
+      padding: 28px 38px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cover-center::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--udea-green) 0%, #10b981 40%, var(--udea-gold) 75%, var(--base-blue) 100%);
+    }
+
+    .cover-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(232, 245, 233, 0.92);
+      color: var(--udea-green-dark);
+      font-size: 13px;
+      font-weight: 900;
+      padding: 6px 18px;
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: 1.5px solid rgba(0, 102, 51, 0.35);
+      width: fit-content;
+    }
+
+    .cover-title-plate {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(0, 102, 51, 0.22);
+      border-left: 7px solid var(--udea-green);
+      border-radius: 16px;
+      padding: 14px 22px;
+    }
+
+    .cover-title {
+      font-size: 38px;
+      font-weight: 900;
+      color: #042614;
+      line-height: 1.15;
+      letter-spacing: -1px;
+    }
+
+    .cover-subtitle {
+      font-size: 17.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      max-width: 1050px;
+      font-weight: 500;
+    }
+
+    .cover-credits {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.70);
+      backdrop-filter: blur(20px);
+      padding: 14px 20px;
+      border-radius: 18px;
+      border: 1.5px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .credit-item {
+      display: flex;
+      flex-direction: column;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(0, 102, 51, 0.16);
+      border-left: 4.5px solid var(--udea-green);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+
+    .credit-label {
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .credit-value {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--text-main);
+      margin-top: 2px;
+    }
+
+    .credit-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Controles flotantes */
+    .controls-dock {
+      position: fixed;
+      bottom: 14px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      padding: 5px 12px;
+      border-radius: 9999px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 900;
+    }
+
+    .control-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .control-btn:hover {
+      background: rgba(232, 245, 233, 0.85);
+      color: var(--udea-green);
+    }
+
+    .control-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .dock-counter {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--udea-green-dark);
+      padding: 0 6px;
+      user-select: none;
+    }
+
+    .dock-divider {
+      width: 1px;
+      height: 18px;
+      background-color: rgba(203, 213, 225, 0.8);
+    }
+
+    /* Modal de cuadrícula / índice */
+    .overview-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .overview-modal.open {
+      display: flex;
+    }
+
+    .overview-content {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(28px);
+      width: 90%;
+      max-width: 1100px;
+      max-height: 85vh;
+      border-radius: 20px;
+      padding: 22px 30px;
+      display: flex;
+      flex-direction: column;
+      border: 1.5px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .overview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+
+    .overview-header h3 {
+      font-size: 20px;
+      color: var(--udea-green-dark);
+      font-weight: 900;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .overview-card {
+      background: rgba(255, 255, 255, 0.75);
+      border: 1.5px solid rgba(203, 213, 225, 0.7);
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .overview-card:hover {
+      border-color: var(--udea-green);
+      background: rgba(240, 253, 244, 0.9);
+      transform: translateY(-2px);
+    }
+
+    .overview-card.active {
+      border-color: var(--udea-green);
+      background: rgba(232, 245, 233, 0.95);
+      box-shadow: 0 0 0 3px var(--udea-green);
+    }
+
+    .ov-num {
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--udea-green);
+      margin-bottom: 3px;
+    }
+
+    .ov-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Capa de Degradado Animado Suave en Toda la Pantalla -->
+  <div class="ambient-gradient-layer"></div>
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+
+  <!-- Barra superior de progreso -->
+  <div class="top-progress-bar" id="progressBar"></div>
+
+  <!-- Escenario de proyección a pantalla completa -->
+  <div class="slide-wrapper" id="slideWrapper">
+
+    <!-- ====================================================================
+         SLIDE 1: PORTADA INSTITUCIONAL UdeA
+         ==================================================================== -->
+    <section class="slide cover-slide active" data-index="1">
+      <div class="cover-header">
+        <img src="./assets/logo-udea-web.png" 
+             onerror="this.onerror=null; this.src='https://www.udea.edu.co/wps/wcm/connect/udea/39d1aba1-d268-4143-b8c8-6689286195ea/logosimbolo-vertical-negro-png.png?MOD=AJPERES&CVID=ljeQHdq';" 
+             alt="Universidad de Antioquia" 
+             class="cover-logo-img">
+        <div class="cover-inst-meta">
+          <div class="cover-inst-name">UNIVERSIDAD DE ANTIOQUIA</div>
+          <div class="cover-inst-fac">Facultad de Ingeniería · Facultad de Ciencias Económicas</div>
+          <div class="cover-inst-sem">Semillero de Investigación en Blockchain & Finanzas Cuantitativas</div>
+        </div>
+      </div>
+
+      <div class="cover-center">
+        <div class="cover-badge">
+          <span>💧</span> Cátedra Magistral · AMM, Creación de Pools & Rango de Liquidez
+        </div>
+        <div class="cover-title-plate">
+          <h1 class="cover-title">Piscinas de Liquidez y Rango Concentrado en Uniswap v3</h1>
+        </div>
+        <p class="cover-subtitle">
+          De la creación del token ERC-20 al despliegue de la piscina: formación determinista de precios, la tokenización de una empresa de $2M con pools de $10 en Base, maximización por rangos estrechos y órdenes de límite sintéticas.
+        </p>
+      </div>
+
+      <div class="cover-credits">
+        <div class="credit-item">
+          <div class="credit-label">Ubicación Presencial</div>
+          <div class="credit-value">Laboratorio Financiero UdeA</div>
+          <div class="credit-sub">Bloque 19-206 · Ingeniería & Finanzas</div>
+        </div>
+        <div class="credit-item">
+          <div class="credit-label">Entorno de Ejecución</div>
+          <div class="credit-value">Base Network L2 (Coinbase)</div>
+          <div class="credit-sub">Uniswap v3 NonfungiblePositionManager</div>
+        </div>
+        <div class="credit-item">
+          <div class="credit-label">Cátedra del Semillero</div>
+          <div class="credit-value">La Alquimia Blockchain</div>
+          <div class="credit-sub">Universidad de Antioquia</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 2: "YA CREAMOS EL TOKEN... ¿QUÉ ES UNA PISCINA?"
+         ==================================================================== -->
+    <section class="slide" data-index="2">
+      <div class="slide-header">
+        <div class="header-branding">
+          <img src="./assets/logo-udea-web.png" onerror="this.onerror=null; this.src='https://www.udea.edu.co/wps/wcm/connect/udea/39d1aba1-d268-4143-b8c8-6689286195ea/logosimbolo-vertical-negro-png.png?MOD=AJPERES&CVID=ljeQHdq';" alt="UdeA" class="header-logo">
+          <div class="header-text-group">
+            <span class="header-institution">Universidad de Antioquia</span>
+            <span class="header-subtitle">Semillero Blockchain · Cátedra de Microestructura DeFi</span>
+          </div>
+        </div>
+        <span class="header-module-badge">1. Fundamentos de Mercado</span>
+      </div>
+
+      <div class="slide-title-group">
+        <h2 class="slide-title">
+          1. Ya creamos el ERC-20... ¿Qué es una Piscina de Liquidez?
+          <span class="slide-title-tag">The Peer-to-Contract Shift</span>
+        </h2>
+        <p class="slide-subdescription">Por qué un token en una wallet tiene valor de liquidación cero y cómo el smart contract actúa como contraparte perpetua.</p>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              La Ilusión del Saldo en la Billetera
+            </h3>
+            <ul class="bullet-list">
+              <li><strong>Un ERC-20 es solo una fila contable:</strong> Tu balance muestra 10,000,000 $CORP, pero en términos computacionales solo existe un entero de 256 bits en la memoria de la EVM (`balances[msg.sender]`).</li>
+              <li><strong>Valor de Realización = $0.00 USD:</strong> No hay ninguna entidad obligada a comprarte ese token.</li>
+              <li><strong>La Falla del Trueque Bilateral (P2P):</strong> Requiere doble coincidencia de necesidades en tiempo real (alguien con dólares que quiera exactamente tus tokens en este segundo).</li>
+              <li><strong>La Barrera de los CEX:</strong> Listar en Binance o Coinbase cuesta $100k-$500k USD y exige contratar firmas externas de market making.</li>
+            </ul>
+            <div class="danger-card" style="margin-top: auto;">
+              Un token sin piscina de liquidez es dinero en una isla desierta: no tiene precio ni convertibilidad real.
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              Anatomía de la Piscina (Automated Market Maker)
+            </h3>
+            <ul class="bullet-list">
+              <li><strong>Una Bóveda Autónoma:</strong> Contrato que custodia dos activos emparejados (ej: Token Base $CORP y Moneda Cotizada USDC).</li>
+              <li><strong>Peer-to-Contract (P2C):</strong> El usuario no le compra a otro humano; le compra o vende directamente al algoritmo. El contrato siempre está disponible 24/7/365.</li>
+              <li><strong>Regla de Intercambio Determinista:</strong> Por cada token que un usuario extrae, debe ingresar una cantidad matemáticamente proporcional del otro activo.</li>
+              <li><strong>Proveedores de Liquidez (LPs):</strong> Depositan ambos tokens para financiar la bóveda y cobran comisiones por cada swap ejecutado.</li>
+            </ul>
+            <div class="highlight-card" style="margin-top: auto;">
+              La piscina es el puente que convierte un contrato de software estático en un activo financiero líquido y transable en todo el planeta.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Semillero de Blockchain & Finanzas Cuantitativas · Universidad de Antioquia</span>
+        <span class="footer-counter">02 / 10</span>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 3: ¿QUÉ ES EL PRECIO? CLÁSICA VS AMM
+         ==================================================================== -->
+    <section class="slide" data-index="3">
+      <div class="slide-header">
+        <div class="header-branding">
+          <img src="./assets/logo-udea-web.png" onerror="this.onerror=null; this.src='https://www.udea.edu.co/wps/wcm/connect/udea/39d1aba1-d268-4143-b8c8-6689286195ea/logosimbolo-vertical-negro-png.png?MOD=AJPERES&CVID=ljeQHdq';" alt="UdeA" class="header-logo">
+          <div class="header-text-group">
+            <span class="header-institution">Universidad de Antioquia</span>
+            <span class="header-subtitle">Semillero Blockchain · Cátedra de Microestructura DeFi</span>
+          </div>
+        </div>
+        <span class="header-module-badge">2. Teoría de Precios</span>
+      </div>
+
+      <div class="slide-title-group">
+        <h2 class="slide-title">
+          2. ¿Qué es el Precio? Economía Clásica vs. El Ratio del AMM
+          <span class="slide-title-tag">The Deterministic Ratio</span>
+        </h2>
+        <p class="slide-subdescription">En Wall Street el precio es un consenso de información; en Uniswap es un estado estrictamente matemático de inventario.</p>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              Economía Tradicional (Marshall & Hayek)
+            </h3>
+            <ul class="bullet-list">
+              <li><strong>Razón Marginal de Sustitución:</strong> El precio relativo entre dos bienes refleja la escasez y las preferencias de los agentes en subastas continuas.</li>
+              <li><strong>Transmisor de Información Exógena:</strong> Si estalla una noticia macroeconómica o un balance positivo, los operadores ajustan sus órdenes al instante sin necesidad de transferir bienes.</li>
+              <li><strong>Intersección de Oferta y Demanda:</strong> El precio de equilibrio $P^*$ vacía el mercado ($Q_D = Q_S$).</li>
+            </ul>
+            <div class="highlight-card" style="margin-top: auto;">
+              El precio tradicional es exógeno: la información exterior causa el movimiento del precio.
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              El Precio en Uniswap (AMM)
+            </h3>
+            <p class="card-content">
+              El precio spot no es una opinión ni un consenso: es el cociente determinista de los inventarios en el contrato:
+            </p>
+            <div class="math-formula-box">
+              $$P_{\text{spot}} = \frac{y}{x} = \frac{\text{Reserva de Moneda Cotizada (USDC)}}{\text{Reserva de Token Base (CORP)}}$$
+              <span class="formula-caption">Uniswap v2: Derivada de la curva de producto constante $x \cdot y = k$</span>
+            </div>
+            <ul class="bullet-list" style="margin-top: 6px;">
+              <li><strong>Ceguera Absoluta del AMM:</strong> El contrato no lee noticias ni sabe si la empresa quebró. Solo reacciona cuando un <strong>arbitrajista</strong> ejecuta transacciones para extraer ganancias.</li>
+              <li><strong>Deslizamiento Obligatorio (Price Impact):</strong> En Wall Street una orden pequeña no altera la cotización; en un AMM cualquier swap desplaza el precio durante la transacción.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Semillero de Blockchain & Finanzas Cuantitativas · Universidad de Antioquia</span>
+        <span class="footer-counter">03 / 10</span>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 4: TOKENIZAR EMPRESA DE $2M CON POOL DE $10 EN BASE
+         ==================================================================== -->
+    <section class="slide" data-index="4">
+      <div class="slide-header">
+        <div class="header-branding">
+          <img src="./assets/logo-udea-web.png" onerror="this.onerror=null; this.src='https://www.udea.edu.co/wps/wcm/connect/udea/39d1aba1-d268-4143-b8c8-6689286195ea/logosimbolo-vertical-negro-png.png?MOD=AJPERES&CVID=ljeQHdq';" alt="UdeA" class="header-logo">
+          <div class="header-text-group">
+            <span class="header-institution">Universidad de Antioquia</span>
+            <span class="header-subtitle">Semillero Blockchain · Cátedra de Microestructura DeFi</span>
+          </div>
+        </div>
+        <span class="header-module-badge">3. Microestructura & Ilusión de Riqueza</span>
+      </div>
+
+      <div class="slide-title-group">
+        <h2 class="slide-title">
+          3. Caso Provocador: Tokenizar Empresa de $2M con Pool de $10 en Base
+          <span class="slide-title-tag">The $10 Pool Paradox</span>
+        </h2>
+        <p class="slide-subdescription">Cómo fabricar una capitalización de 2 millones de dólares con 10 dólares y por qué colapsa al primer intento de venta.</p>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              La Fabricación del Market Cap (FDV)
+            </h3>
+            <ul class="bullet-list">
+              <li><strong>Empresa Real:</strong> Valuada en <strong>$2,000,000 USD</strong> con activos físicos y clientes.</li>
+              <li><strong>Emisión ERC-20 en Base:</strong> Se acuñan <strong>2,000,000 tokens $CORP</strong> (1 token = 1 acción teórica de $1.00 USD).</li>
+              <li><strong>Creación de la Pool en Base:</strong> El fundador deposita únicamente:
+                <br>• <strong>10 tokens CORP</strong>
+                <br>• <strong>10 tokens USDC</strong>
+              </li>
+              <li><strong>Precio Spot Inicial:</strong> $P_0 = 10\text{ USDC} / 10\text{ CORP} = \mathbf{\$1.00\text{ USD}}$.</li>
+              <li><strong>El Titular en DexScreener / CoinMarketCap:</strong>
+                $$\text{FDV} = 2,000,000 \times \$1.00 = \mathbf{\$2,000,000\text{ USD}}$$
+              </li>
+            </ul>
+            <div class="alert-card" style="margin-top: auto;">
+              ¡Aparece formalmente una empresa de 2 millones de dólares creada con un billete de diez dólares!
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+              El Colapso: ¿Qué pasa si alguien vende 25 tokens?
+            </h3>
+            <ul class="bullet-list">
+              <li><strong>La Restricción Absoluta de Caja:</strong> En la piscina solo existen <strong>$10 USDC</strong>. No importa el FDV: es físicamente imposible extraer más de $10 dólares.</li>
+              <li><strong>Intento de Venta de 25 CORP ($25 USD teóricos):</strong>
+                <br>• La reserva de CORP sube a $10 + 25 = 35$.
+                <br>• Por producto constante ($k = 10 \cdot 10 = 100$), la nueva reserva de USDC cae a $100 / 35 = 2.85\text{ USDC}$.
+                <br>• El vendedor solo recibe <strong>$7.15 USDC</strong> por sus "25 dólares".
+              </li>
+              <li><strong>Colapso del Precio Spot:</strong>
+                $$P_{\text{nuevo}} = \frac{2.85}{35} = \mathbf{\$0.0814\text{ USD}} \quad (\mathbf{-91.8\%}\text{ de caída})$$
+              </li>
+            </ul>
+            <div class="danger-card" style="margin-top: auto;">
+              <strong>Principio Fundamental:</strong> El Market Cap mide solo la última transacción marginal. La métrica real de solvencia es la <strong>Profundidad de Mercado (Market Depth)</strong>.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Semillero de Blockchain & Finanzas Cuantitativas · Universidad de Antioquia</span>
+        <span class="footer-counter">04 / 10</span>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 5: CREACIÓN DE LA POOL EN UNISWAP V3
+         ==================================================================== -->
+    <section class="slide" data-index="5">
+      <div class="slide-header">
+        <div class="header-branding">
+          <img src="./assets/logo-udea-web.png" onerror="this.onerror=null; this.src='https://www.udea.edu.co/wps/wcm/connect/udea/39d1aba1-d268-4143-b8c8-6689286195ea/logosimbolo-vertical-negro-png.png?MOD=AJPERES&CVID=ljeQHdq';" alt="UdeA" class="header-logo">
+          <div class="header-text-group">
+            <span class="header-institution">Universidad de Antioquia</span>
+            <span class="header-subtitle">Semillero Blockchain · Cátedra de Microestructura DeFi</span>
+          </div>
+        </div>
+        <span class="header-module-badge">4. Creación de la Pool en Solidity</span>
+      </div>
+
+      <div class="slide-title-group">
+        <h2 class="slide-title">
+          4. Creación de la Pool en Uniswap v3: Parámetros y Despliegue en Base
+          <span class="slide-title-tag">Smart Contract Architecture</span>
+        </h2>
+        <p class="slide-subdescription">Cómo inicializar la piscina, codificar el precio en formato Q64.96 y fijar los parámetros técnicos en la L2 de Coinbase.</p>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="code-container">
+            <div class="code-header">
+              <span class="code-header-title">DeployPool.sol · NonfungiblePositionManager</span>
+              <span class="code-header-badge">Solidity ^0.8.20</span>
+            </div>
+            <div class="code-wrapper">
+<span class="code-tp">INonfungiblePositionManager</span> <span class="code-kw">constant</span> posMgr = 
+    <span class="code-tp">INonfungiblePositionManager</span>(<span class="code-nm">0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1</span>);
+
+<span class="code-kw">function</span> <span class="code-fn">createPoolAndMint</span>(
+    <span class="code-tp">address</span> token0,   <span class="code-cm">// Menor address hex (lexicográfico)</span>
+    <span class="code-tp">address</span> token1,   <span class="code-cm">// Mayor address hex</span>
+    <span class="code-tp">uint24</span> feeTier,   <span class="code-cm">// 10000 = 1.00%</span>
+    <span class="code-tp">uint160</span> sqrtPriceX96 <span class="code-cm">// Q64.96 precio inicial</span>
+) <span class="code-kw">external</span> {
+    <span class="code-cm">// 1. Inicializar la pool en Base</span>
+    posMgr.<span class="code-fn">createAndInitializePoolIfNecessary</span>(
+        token0, token1, feeTier, sqrtPriceX96
+    );
+
+    <span class="code-cm">// 2. Aprobar transferencias de tokens</span>
+    <span class="code-tp">IERC20</span>(token0).<span class="code-fn">approve</span>(<span class="code-tp">address</span>(posMgr), <span class="code-nm">10 ether</span>);
+    <span class="code-tp">IERC20</span>(token1).<span class="code-fn">approve</span>(<span class="code-tp">address</span>(posMgr), <span class="code-nm">10 ether</span>);
+
+    <span class="code-cm">// 3. Mintear posición de rango</span>
+    posMgr.<span class="code-fn">mint</span>(<span class="code-tp">INonfungiblePositionManager</span>.<span class="code-tp">MintParams</span>({
+        token0: token0,
+        token1: token1,
+        fee: feeTier,
+        tickLower: -<span class="code-nm">600</span>,
+        tickUpper: <span class="code-nm">600</span>,
+        amount0Desired: <span class="code-nm">10 ether</span>,
+        amount1Desired: <span class="code-nm">10 ether</span>,
+        amount0Min: <span class="code-nm">0</span>,
+        amount1Min: <span class="code-nm">0</span>,
+        recipient: msg.sender,
+        deadline: block.timestamp + <span class="code-nm">300</span>
+    }));
+}
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+              Las Reglas Matemáticas Obligatorias
+            </h3>
+            <ul class="bullet-list">
+              <li><strong>Orden Léxico Estricto:</strong> `token0` siempre debe ser menor que `token1` (`token0 < token1`). Si se invierten, el precio queda como inverso $1/P$.</li>
+              <li><strong>Formato de Precio Q64.96:</strong> Para evitar errores de punto flotante en la EVM, se almacena la raíz cuadrada multiplicada por $2^{96}$:
+                $$\sqrt{P}_{X96} = \sqrt{\frac{\text{amount1}}{\text{amount0}}} \times 2^{96}$$
+                Para $1.00 USD, $\sqrt{1} \times 2^{96} = \mathbf{79228162514264337593543950336}$.
+              </li>
+              <li><strong>¿Por qué $\sqrt{P}$ en la EVM?:</strong> Porque el swap entre ticks se vuelve lineal en $\sqrt{P}$ ($\Delta y = L \cdot \Delta\sqrt{P}$), eliminando raíces cuadradas costosas en gas durante la ejecución de las transacciones.</li>
+            </ul>
+            <div class="highlight-card" style="margin-top: auto;">
+              En Base L2, este despliegue cuesta menos de **$0.05 USD de gas** y toma menos de 2 segundos en confirmarse.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Semillero de Blockchain & Finanzas Cuantitativas · Universidad de Antioquia</span>
+        <span class="footer-counter">05 / 10</span>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 6: LA REVOLUCIÓN DEL RANGO: V2 VS V3
+         ==================================================================== -->
+    <section class="slide" data-index="6">
+      <div class="slide-header">
+        <div class="header-branding">
+          <img src="./assets/logo-udea-web.png" onerror="this.onerror=null; this.src='https://www.udea.edu.co/wps/wcm/connect/udea/39d1aba1-d268-4143-b8c8-6689286195ea/logosimbolo-vertical-negro-png.png?MOD=AJPERES&CVID=ljeQHdq';" alt="UdeA" class="header-logo">
+          <div class="header-text-group">
+            <span class="header-institution">Universidad de Antioquia</span>
+            <span class="header-subtitle">Semillero Blockchain · Cátedra de Microestructura DeFi</span>
+          </div>
+        </div>
+        <span class="header-module-badge">5. El Rango de Liquidez</span>
+      </div>
+
+      <div class="slide-title-group">
+        <h2 class="slide-title">
+          5. La Revolución del Rango: De Uniswap v2 a la Liquidez Concentrada
+          <span class="slide-title-tag">Virtual Curves & Ticks</span>
+        </h2>
+        <p class="slide-subdescription">El paso del capital ocioso en rangos infinitos a la concentración quirúrgica en intervalos acotados $[p_a, p_b]$.</p>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Uniswap v2: Rango Infinito $(0, \infty)$
+            </h3>
+            <ul class="bullet-list">
+              <li><strong>Distribución Homogénea:</strong> El capital está esparcido desde $P \rightarrow 0$ hasta $P \rightarrow \infty$.</li>
+              <li><strong>Capital Dormido:</strong> El 99% de los fondos están asignados a precios que el par jamás visitará (ej: ETH a $0.05 o a $500,000 USD).</li>
+              <li><strong>Rendimiento Diluido:</strong> Los LPs cobran comisiones muy bajas por dólar aportado debido a la dispersión extrema.</li>
+            </ul>
+            <div class="alert-card" style="margin-top: auto;">
+              En v2 se necesitaban millones de dólares para que una compra no disparara el precio un 10%.
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Uniswap v3: Rango Concentrado $[p_a, p_b]$
+            </h3>
+            <p class="card-content">
+              El LP concentra sus fondos en un intervalo acotado. La matemática utiliza <strong>reservas virtuales</strong>:
+            </p>
+            <div class="math-formula-box">
+              $$\left(x + \frac{L}{\sqrt{p_b}}\right)\left(y + L\sqrt{p_a}\right) = L^2$$
+              <span class="formula-caption">$p_a$ = límite inferior, $p_b$ = límite superior, $L$ = liquidez concentrada</span>
+            </div>
+            <ul class="bullet-list" style="margin-top: 6px;">
+              <li><strong>Dentro del Rango:</strong> El capital se comporta exactamente como si la pool tuviera millones de dólares en reservas reales.</li>
+              <li><strong>Fuera del Rango:</strong> Si el precio cruza $p_b$, la posición queda 100% en USDC. Si cae por debajo de $p_a$, queda 100% en CORP y se apaga (genera $0 comisiones).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Semillero de Blockchain & Finanzas Cuantitativas · Universidad de Antioquia</span>
+        <span class="footer-counter">06 / 10</span>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 7: MAXIMIZACIÓN DE LIQUIDEZ POR RANGOS ESTRECHOS
+         ==================================================================== -->
+    <section class="slide" data-index="7">
+      <div class="slide-header">
+        <div class="header-branding">
+          <img src="./assets/logo-udea-web.png" onerror="this.onerror=null; this.src='https://www.udea.edu.co/wps/wcm/connect/udea/39d1aba1-d268-4143-b8c8-6689286195ea/logosimbolo-vertical-negro-png.png?MOD=AJPERES&CVID=ljeQHdq';" alt="UdeA" class="header-logo">
+          <div class="header-text-group">
+            <span class="header-institution">Universidad de Antioquia</span>
+            <span class="header-subtitle">Semillero Blockchain · Cátedra de Microestructura DeFi</span>
+          </div>
+        </div>
+        <span class="header-module-badge">6. Eficiencia de Capital</span>
+      </div>
+
+      <div class="slide-title-group">
+        <h2 class="slide-title">
+          6. Maximización de Liquidez por Rangos Estrechos (Capital Efficiency)
+          <span class="slide-title-tag">The 2,000x Leverage Effect</span>
+        </h2>
+        <p class="slide-subdescription">Cómo una pool de $10 USD en Base simula una profundidad de $20,000 USD y cuál es su costo oculto.</p>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6-6"/></svg>
+              Multiplicador de Eficiencia ($\chi$)
+            </h3>
+            <p class="card-content">
+              La amplificación de capital frente al modelo clásico de Uniswap v2 es:
+            </p>
+            <div class="math-formula-box">
+              $$\chi = \frac{1}{1 - \sqrt{\frac{p_a}{p_b}}}$$
+              <span class="formula-caption">Multiplicador de Eficiencia de Capital</span>
+            </div>
+            <div class="highlight-card" style="margin-top: 8px;">
+              <strong>Ejemplo Numérico en Base:</strong>
+              <br>• Fijamos un rango estrecho alrededor de $1.00 USD:
+              $$p_a = 0.999 \text{ USD}, \quad p_b = 1.001 \text{ USD} \quad (\pm 0.1\%)$$
+              $$\chi \approx \frac{1}{1 - 0.9990005} \approx \mathbf{1,000.5\times}$$
+            </div>
+            <p class="card-content" style="margin-top: 8px;">
+              ¡Tus <strong>$10 USDC</strong> colocados en este rango ofrecen la misma profundidad y el mismo cobro de comisiones que <strong>$10,000 USD</strong> en Uniswap v2!
+            </p>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              La Espada de Doble Filo: Riesgos
+            </h3>
+            <ul class="bullet-list">
+              <li><strong>Salida Inmediata de Rango:</strong> Una compra o venta de apenas $5 USD empuja el precio fuera de $[0.999, 1.001]$.</li>
+              <li><strong>Pérdida Impermanente Concentrada:</strong> La pérdida frente al HODL se multiplica por el mismo factor de apalancamiento:
+                $$IL_{v3} = \chi \cdot IL_{v2}$$
+              </li>
+              <li><strong>Por qué solo funciona en activos estables:</strong>
+                <br>• Stablecoins (USDC/USDT): Soportan $\pm 0.05\%$ con eficiencia de $4,000\times$.
+                <br>• Pares Volátiles (ETH/USDC): Exigen rangos amplios ($\pm 10\%-20\%$), con eficiencia de $5\times-15\times$.
+              </li>
+            </ul>
+            <div class="danger-card" style="margin-top: auto;">
+              A mayor estrechez de rango, mayor rentabilidad pasiva pero mayor velocidad de desbalanceo del inventario.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Semillero de Blockchain & Finanzas Cuantitativas · Universidad de Antioquia</span>
+        <span class="footer-counter">07 / 10</span>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 8: ÓRDENES DE RANGO Y MAPAS DE LIQUIDEZ
+         ==================================================================== -->
+    <section class="slide" data-index="8">
+      <div class="slide-header">
+        <div class="header-branding">
+          <img src="./assets/logo-udea-web.png" onerror="this.onerror=null; this.src='https://www.udea.edu.co/wps/wcm/connect/udea/39d1aba1-d268-4143-b8c8-6689286195ea/logosimbolo-vertical-negro-png.png?MOD=AJPERES&CVID=ljeQHdq';" alt="UdeA" class="header-logo">
+          <div class="header-text-group">
+            <span class="header-institution">Universidad de Antioquia</span>
+            <span class="header-subtitle">Semillero Blockchain · Cátedra de Microestructura DeFi</span>
+          </div>
+        </div>
+        <span class="header-module-badge">7. Órdenes Límite & Heatmaps</span>
+      </div>
+
+      <div class="slide-title-group">
+        <h2 class="slide-title">
+          7. Órdenes de Rango (Range Orders) y Mapas de Liquidez
+          <span class="slide-title-tag">Synthetic CLOB & Depth Walls</span>
+        </h2>
+        <p class="slide-subdescription">Cómo simular una orden de límite en un solo tick, la trampa de la reversibilidad y la lectura de mapas de calor.</p>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+              Órdenes de Rango (Limit Orders en AMM)
+            </h3>
+            <ul class="bullet-list">
+              <li><strong>Depósito de Un Solo Activo:</strong> Se deposita capital en un único tick $[i, i+1]$ fuera del precio actual.</li>
+              <li><strong>Limit Sell:</strong> Depositas solo $CORP en $[1.05, 1.06]$. Cuando el precio cruza hacia arriba, tu posición se transforma <strong>100% en USDC</strong>.</li>
+              <li><strong>¡Te pagan comisiones!:</strong> En Binance pagas tarifas por operar; en Uniswap te pagan comisiones mientras se ejecuta tu orden.</li>
+              <li><strong>La Trampa de la Reversibilidad:</strong> A diferencia de Wall Street, si el precio cruza y luego retrocede, tu orden se des-ejecuta a menos que la retires de inmediato.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Mapas de Liquidez: Bid-Side vs. Ask-Side
+            </h3>
+            <div class="svg-diagram-card">
+              <svg viewBox="0 0 450 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Ejes -->
+                <line x1="30" y1="150" x2="420" y2="150" stroke="#334155" stroke-width="2"/>
+                <line x1="30" y1="150" x2="30" y2="20" stroke="#334155" stroke-width="2"/>
+                
+                <!-- Bid Side (USDC) -->
+                <rect x="110" y="70" width="30" height="80" fill="#0052ff" opacity="0.8"/>
+                <rect x="145" y="40" width="30" height="110" fill="#0052ff"/>
+                <rect x="180" y="25" width="30" height="125" fill="#0052ff"/>
+                <text x="155" y="15" font-family="Inter" font-size="11" font-weight="900" fill="#0052ff" text-anchor="middle">BID-SIDE (USDC)</text>
+
+                <!-- Spot Line -->
+                <line x1="220" y1="15" x2="220" y2="150" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="3 3"/>
+                <circle cx="220" cy="15" r="5" fill="#dc2626"/>
+                <text x="220" y="165" font-family="JetBrains Mono" font-size="10" font-weight="900" fill="#dc2626" text-anchor="middle">Spot P0</text>
+
+                <!-- Ask Side (CORP) -->
+                <rect x="230" y="25" width="30" height="125" fill="#006633"/>
+                <rect x="265" y="40" width="30" height="110" fill="#006633"/>
+                <rect x="300" y="70" width="30" height="80" fill="#006633" opacity="0.8"/>
+                <text x="280" y="15" font-family="Inter" font-size="11" font-weight="900" fill="#006633" text-anchor="middle">ASK-SIDE (CORP)</text>
+              </svg>
+            </div>
+            <p class="card-content" style="font-size: 13.5px; margin-top: 4px;">
+              <strong>Muros de Liquidez:</strong> Zonas densas que amortiguan la volatilidad. <strong>Vacíos de Liquidez:</strong> Rangos sin LPs donde el precio salta sin resistencia.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Semillero de Blockchain & Finanzas Cuantitativas · Universidad de Antioquia</span>
+        <span class="footer-counter">08 / 10</span>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 9: SIMULADOR INTERACTIVO
+         ==================================================================== -->
+    <section class="slide" data-index="9">
+      <div class="slide-header">
+        <div class="header-branding">
+          <img src="./assets/logo-udea-web.png" onerror="this.onerror=null; this.src='https://www.udea.edu.co/wps/wcm/connect/udea/39d1aba1-d268-4143-b8c8-6689286195ea/logosimbolo-vertical-negro-png.png?MOD=AJPERES&CVID=ljeQHdq';" alt="UdeA" class="header-logo">
+          <div class="header-text-group">
+            <span class="header-institution">Universidad de Antioquia</span>
+            <span class="header-subtitle">Semillero Blockchain · Cátedra de Microestructura DeFi</span>
+          </div>
+        </div>
+        <span class="header-module-badge">8. Laboratorio Cuantitativo</span>
+      </div>
+
+      <div class="slide-title-group">
+        <h2 class="slide-title">
+          8. Simulador Interactivo: Creación de Pool, Rango y Slippage
+          <span class="slide-title-tag">Live Engine</span>
+        </h2>
+        <p class="slide-subdescription">Ajusta los parámetros de la empresa de $2M y observa cómo responde el precio ante diferentes órdenes de venta.</p>
+      </div>
+
+      <div class="slide-body">
+        <div class="simulator-container">
+          <!-- Panel de Controles -->
+          <div class="sim-controls-panel">
+            <h4 style="font-size: 14.5px; font-weight: 900; color: var(--udea-green-dark); border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">
+              Parámetros de la Piscina en Base
+            </h4>
+            
+            <div class="sim-field">
+              <label>Suministro Total (Tokens CORP): <span class="val" id="lblSupply">2,000,000</span></label>
+              <input type="range" class="sim-input-slider" id="inputSupply" min="500000" max="10000000" step="500000" value="2000000">
+            </div>
+
+            <div class="sim-field">
+              <label>Liquidez Inicial USDC en Pool: <span class="val" id="lblUsdc">$10 USD</span></label>
+              <input type="range" class="sim-input-slider" id="inputUsdc" min="5" max="500" step="5" value="10">
+            </div>
+
+            <div class="sim-field">
+              <label>Tokens CORP Iniciales en Pool: <span class="val" id="lblCorp">10 CORP</span></label>
+              <input type="range" class="sim-input-slider" id="inputCorp" min="5" max="500" step="5" value="10">
+            </div>
+
+            <div class="sim-field">
+              <label>Ancho del Rango Concentrado: <span class="val" id="lblRange">± 1.0%</span></label>
+              <select id="selectRange" style="padding: 6px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-family: var(--font-mono); font-weight: 800; font-size: 13px;">
+                <option value="0.001">Ultra-Estrecho (± 0.1% · Eficiencia ~1,000x)</option>
+                <option value="0.01" selected>Estrecho (± 1.0% · Eficiencia ~100x)</option>
+                <option value="0.10">Medio (± 10.0% · Eficiencia ~10x)</option>
+                <option value="1.00">Completo (Full Range v2 · Eficiencia 1x)</option>
+              </select>
+            </div>
+
+            <div class="sim-field" style="border-top: 1.5px dashed #cbd5e1; padding-top: 8px;">
+              <label style="color: #dc2626;">Orden de Venta Simulada (Tokens CORP): <span class="val" id="lblSell" style="color:#dc2626;">25 CORP</span></label>
+              <input type="range" class="sim-input-slider" id="inputSell" min="1" max="100" step="1" value="25" style="accent-color: #dc2626;">
+            </div>
+          </div>
+
+          <!-- Panel de Resultados -->
+          <div class="sim-results-panel">
+            <h4 style="font-size: 13.5px; font-weight: 900; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px;">
+              Diagnóstico de Microestructura On-Chain
+            </h4>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="sim-stat-box">
+                <span class="sim-stat-label">Market Cap Teórico (FDV)</span>
+                <span class="sim-stat-value" id="resFdv" style="color: #4ade80;">$2,000,000</span>
+              </div>
+              <div class="sim-stat-box">
+                <span class="sim-stat-label">Precio Spot Inicial</span>
+                <span class="sim-stat-value" id="resPrice">$1.0000</span>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="sim-stat-box">
+                <span class="sim-stat-label">Reserva Real en Pool</span>
+                <span class="sim-stat-value" id="resReserve" style="color: #fbbf24;">$10.00 USDC</span>
+              </div>
+              <div class="sim-stat-box">
+                <span class="sim-stat-label">Multiplicador Eficiencia</span>
+                <span class="sim-stat-value" id="resEfficiency">100.5x</span>
+              </div>
+            </div>
+
+            <div class="sim-stat-box" style="border-color: #dc2626; background: #1e1b4b;">
+              <span class="sim-stat-label" style="color: #f87171;">Resultado tras Ejecutar la Orden de Venta:</span>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px;">
+                <span style="font-size: 13px; color: #cbd5e1;">USDC Recibidos:</span>
+                <span id="resReceived" style="font-family: var(--font-mono); font-size: 17px; font-weight: 900; color: #38bdf8;">$7.14 USDC</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 2px;">
+                <span style="font-size: 13px; color: #cbd5e1;">Nuevo Precio Spot:</span>
+                <span id="resNewPrice" style="font-family: var(--font-mono); font-size: 16px; font-weight: 800; color: #f87171;">$0.0816 USD</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 2px;">
+                <span style="font-size: 13px; color: #cbd5e1;">Deslizamiento (Slippage):</span>
+                <span id="resSlippage" style="font-family: var(--font-mono); font-size: 18px; font-weight: 900; color: #ef4444;">-91.8%</span>
+              </div>
+            </div>
+
+            <div class="sim-alert-badge" id="simAlert" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5;">
+              ⚠️ <strong>Colapso Inminente:</strong> La orden vendió el 0.001% de los tokens pero drenó el 71% de la reserva total de dólares.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Semillero de Blockchain & Finanzas Cuantitativas · Universidad de Antioquia</span>
+        <span class="footer-counter">09 / 10</span>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SLIDE 10: CONCLUSIONES Y AGRADECIMIENTOS ("¡MUCHAS GRACIAS!")
+         ==================================================================== -->
+    <section class="slide" data-index="10">
+      <div class="slide-header">
+        <div class="header-branding">
+          <img src="./assets/logo-udea-web.png" onerror="this.onerror=null; this.src='https://www.udea.edu.co/wps/wcm/connect/udea/39d1aba1-d268-4143-b8c8-6689286195ea/logosimbolo-vertical-negro-png.png?MOD=AJPERES&CVID=ljeQHdq';" alt="UdeA" class="header-logo">
+          <div class="header-text-group">
+            <span class="header-institution">Universidad de Antioquia</span>
+            <span class="header-subtitle">Semillero Blockchain · Cátedra de Microestructura DeFi</span>
+          </div>
+        </div>
+        <span class="header-module-badge">Conclusión & Cierre de Cátedra</span>
+      </div>
+
+      <div class="slide-title-group">
+        <h2 class="slide-title">
+          9. Síntesis Magistral y Cierre de Cátedra
+          <span class="slide-title-tag">The Golden Rules</span>
+        </h2>
+        <p class="slide-subdescription">Los principios inquebrantables de las piscinas de liquidez y el reconocimiento al semillero.</p>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="card">
+            <h3 class="card-title">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              Los 4 Axiomas Definitivos
+            </h3>
+            <ul class="bullet-list">
+              <li><strong>1. El Token es Código, la Piscina es el Mercado:</strong> Ningún ERC-20 tiene valor realizable sin un contrato de liquidez de contraparte continua.</li>
+              <li><strong>2. El Precio en AMM es Inventario Determinista:</strong> No refleja opiniones hasta que los arbitrajistas transfieren información mediante swaps on-chain.</li>
+              <li><strong>3. El Market Cap (FDV) es un Espejismo sin Profundidad:</strong> Una empresa de $2M con $10 en la pool no puede liquidar un almuerzo sin colapsar el precio.</li>
+              <li><strong>4. La Liquidez Concentrada es Eficiencia Quirúrgica:</strong> Multiplica el capital hasta 2,000x, pero castiga brutalmente las salidas de rango con Impermanent Loss.</li>
+            </ul>
+          </div>
+
+          <div class="card" style="justify-content: space-between; background: linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,253,244,0.95) 100%); border-left: 7px solid var(--udea-green);">
+            <div>
+              <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0, 102, 51, 0.12); padding: 4px 14px; border-radius: 9999px; color: var(--udea-green); font-size: 13px; font-weight: 900; margin-bottom: 8px;">
+                🎓 CÁTEDRA FINALIZADA CON ÉXITO
+              </div>
+              <h2 style="font-size: 36px; font-weight: 900; color: var(--udea-green-dark); line-height: 1.1; margin-bottom: 8px;">
+                ¡Muchas Gracias!
+              </h2>
+              <p class="card-content" style="font-size: 16.5px; color: var(--text-muted); line-height: 1.45;">
+                Agradecimiento especial a todos los estudiantes, investigadores y participantes por su compromiso con el rigor científico, la ingeniería financiera y el desarrollo del ecosistema Web3 en la Universidad de Antioquia.
+              </p>
+            </div>
+
+            <div class="cover-credits" style="padding: 10px 14px; margin-top: 10px; grid-template-columns: 1fr 1fr;">
+              <div class="credit-item">
+                <div class="credit-label">Semillero</div>
+                <div class="credit-value" style="font-size: 14.5px;">La Alquimia Blockchain</div>
+                <div class="credit-sub">Universidad de Antioquia</div>
+              </div>
+              <div class="credit-item">
+                <div class="credit-label">Facultades</div>
+                <div class="credit-value" style="font-size: 14.5px;">Ingeniería & Ciencias Económicas</div>
+                <div class="credit-sub">Laboratorio Financiero 19-206</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Semillero de Blockchain & Finanzas Cuantitativas · Universidad de Antioquia</span>
+        <span class="footer-counter">10 / 10</span>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Barra flotante inferior de controles -->
+  <div class="controls-dock">
+    <button class="control-btn" id="overviewBtn" title="Ver Índice (Tecla O)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
+    </button>
+    <div class="dock-divider"></div>
+    <button class="control-btn" id="prevBtn" title="Anterior (Flecha Izquierda)">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    </button>
+    <span class="dock-counter" id="slideCounter">01 / 10</span>
+    <button class="control-btn" id="nextBtn" title="Siguiente (Espacio o Flecha Derecha)">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </button>
+    <div class="dock-divider"></div>
+    <button class="control-btn" id="fullscreenBtn" title="Pantalla Completa (Tecla F)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+    </button>
+  </div>
+
+  <!-- Modal de Cuadrícula / Índice Completo -->
+  <div class="overview-modal" id="overviewModal">
+    <div class="overview-content">
+      <div class="overview-header">
+        <h3>Índice de la Cátedra · Piscinas de Liquidez y Rango Concentrado</h3>
+        <button class="control-btn" id="closeOverviewBtn">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="overview-grid" id="overviewGrid"></div>
+    </div>
+  </div>
+
+  <!-- SCRIPT DE CONTROL Y SIMULADOR -->
+  <script>
+    (function() {
+      let currentSlide = 0;
+      const slides = document.querySelectorAll('.slide');
+      const totalSlides = slides.length;
+      
+      const progressBar = document.getElementById('progressBar');
+      const slideCounter = document.getElementById('slideCounter');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const overviewBtn = document.getElementById('overviewBtn');
+      const closeOverviewBtn = document.getElementById('closeOverviewBtn');
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+      const overviewModal = document.getElementById('overviewModal');
+      const overviewGrid = document.getElementById('overviewGrid');
+
+      // Títulos del índice para las 10 diapositivas
+      const titles = [
+        "1. Portada Institucional UdeA",
+        "2. Ya creamos el ERC-20... ¿Qué es una Piscina?",
+        "3. ¿Qué es el Precio? Economía Clásica vs. AMM",
+        "4. Tokenizar Empresa de $2M con Pool de $10 en Base",
+        "5. Creación de la Pool en Uniswap v3 (Solidity)",
+        "6. La Revolución del Rango: De v2 a Concentrado",
+        "7. Maximización de Liquidez por Rangos Estrechos",
+        "8. Órdenes de Rango (Range Orders) y Heatmaps",
+        "9. Simulador Interactivo: Pool, Rango y Slippage",
+        "10. Conclusiones y Agradecimientos (Cierre)"
+      ];
+
+      titles.forEach((title, idx) => {
+        const item = document.createElement('div');
+        item.className = `overview-card ${idx === 0 ? 'active' : ''}`;
+        item.innerHTML = `<span class="ov-num">Diapositiva ${String(idx + 1).padStart(2, '0')}</span><span class="ov-title">${title}</span>`;
+        item.addEventListener('click', () => {
+          goToSlide(idx);
+          toggleOverview(false);
+        });
+        overviewGrid.appendChild(item);
+      });
+
+      function updateSlide() {
+        slides.forEach((s, idx) => {
+          s.classList.toggle('active', idx === currentSlide);
+        });
+
+        const progress = ((currentSlide + 1) / totalSlides) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        slideCounter.textContent = `${String(currentSlide + 1).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+
+        const cards = overviewGrid.querySelectorAll('.overview-card');
+        cards.forEach((c, idx) => c.classList.toggle('active', idx === currentSlide));
+
+        window.location.hash = `slide-${currentSlide + 1}`;
+      }
+
+      function goToSlide(index) {
+        if (index >= 0 && index < totalSlides) {
+          currentSlide = index;
+          updateSlide();
+        }
+      }
+
+      function next() {
+        if (currentSlide < totalSlides - 1) goToSlide(currentSlide + 1);
+      }
+
+      function prev() {
+        if (currentSlide > 0) goToSlide(currentSlide - 1);
+      }
+
+      function toggleOverview(force) {
+        const isOpen = overviewModal.classList.contains('open');
+        overviewModal.classList.toggle('open', force !== undefined ? force : !isOpen);
+      }
+
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+
+      nextBtn.addEventListener('click', next);
+      prevBtn.addEventListener('click', prev);
+      overviewBtn.addEventListener('click', () => toggleOverview());
+      closeOverviewBtn.addEventListener('click', () => toggleOverview(false));
+      fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+      document.addEventListener('keydown', (e) => {
+        if (overviewModal.classList.contains('open')) {
+          if (e.key === 'Escape' || e.key === 'o' || e.key === 'O') toggleOverview(false);
+          return;
+        }
+
+        switch(e.key) {
+          case 'ArrowRight':
+          case ' ':
+          case 'PageDown':
+            e.preventDefault();
+            next();
+            break;
+          case 'ArrowLeft':
+          case 'PageUp':
+            e.preventDefault();
+            prev();
+            break;
+          case 'Home':
+            e.preventDefault();
+            goToSlide(0);
+            break;
+          case 'End':
+            e.preventDefault();
+            goToSlide(totalSlides - 1);
+            break;
+          case 'f':
+          case 'F':
+            e.preventDefault();
+            toggleFullscreen();
+            break;
+          case 'o':
+          case 'O':
+            e.preventDefault();
+            toggleOverview(true);
+            break;
+          case 'Escape':
+            toggleOverview(false);
+            break;
+        }
+      });
+
+      function loadFromHash() {
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#slide-')) {
+          const num = parseInt(hash.replace('#slide-', ''), 10);
+          if (!isNaN(num) && num >= 1 && num <= totalSlides) {
+            currentSlide = num - 1;
+          }
+        }
+      }
+
+      loadFromHash();
+      updateSlide();
+
+      // ====================================================================
+      // LÓGICA DEL SIMULADOR INTERACTIVO (SLIDE 9)
+      // ====================================================================
+      const inputSupply = document.getElementById('inputSupply');
+      const inputUsdc = document.getElementById('inputUsdc');
+      const inputCorp = document.getElementById('inputCorp');
+      const selectRange = document.getElementById('selectRange');
+      const inputSell = document.getElementById('inputSell');
+
+      const lblSupply = document.getElementById('lblSupply');
+      const lblUsdc = document.getElementById('lblUsdc');
+      const lblCorp = document.getElementById('lblCorp');
+      const lblRange = document.getElementById('lblRange');
+      const lblSell = document.getElementById('lblSell');
+
+      const resFdv = document.getElementById('resFdv');
+      const resPrice = document.getElementById('resPrice');
+      const resReserve = document.getElementById('resReserve');
+      const resEfficiency = document.getElementById('resEfficiency');
+      const resReceived = document.getElementById('resReceived');
+      const resNewPrice = document.getElementById('resNewPrice');
+      const resSlippage = document.getElementById('resSlippage');
+      const simAlert = document.getElementById('simAlert');
+
+      function calculateSim() {
+        if (!inputSupply) return;
+        const supply = parseFloat(inputSupply.value);
+        const usdc = parseFloat(inputUsdc.value);
+        const corp = parseFloat(inputCorp.value);
+        const rangeWidth = parseFloat(selectRange.value);
+        const sellAmount = parseFloat(inputSell.value);
+
+        lblSupply.textContent = supply.toLocaleString('en-US');
+        lblUsdc.textContent = `$${usdc.toFixed(0)} USD`;
+        lblCorp.textContent = `${corp.toFixed(0)} CORP`;
+        lblRange.textContent = `± ${(rangeWidth * 100).toFixed(1)}%`;
+        lblSell.textContent = `${sellAmount.toFixed(0)} CORP`;
+
+        const spotPrice = usdc / corp;
+        const fdv = supply * spotPrice;
+
+        resPrice.textContent = `$${spotPrice.toFixed(4)}`;
+        resFdv.textContent = `$${Math.round(fdv).toLocaleString('en-US')}`;
+        resReserve.textContent = `$${usdc.toFixed(2)} USDC`;
+
+        let efficiency = 1;
+        if (rangeWidth < 1.0) {
+          const pa = spotPrice * (1 - rangeWidth);
+          const pb = spotPrice * (1 + rangeWidth);
+          efficiency = 1 / (1 - Math.sqrt(pa / pb));
+        }
+        resEfficiency.textContent = `${efficiency.toFixed(1)}x`;
+
+        const virtualUsdc = usdc * efficiency;
+        const virtualCorp = corp * efficiency;
+        const k = virtualUsdc * virtualCorp;
+
+        const newVirtualCorp = virtualCorp + sellAmount;
+        const newVirtualUsdc = k / newVirtualCorp;
+        let usdcOut = virtualUsdc - newVirtualUsdc;
+
+        let drained = false;
+        if (usdcOut >= usdc) {
+          usdcOut = usdc;
+          drained = true;
+        }
+
+        const effectivePrice = usdcOut / sellAmount;
+        const slippage = ((effectivePrice - spotPrice) / spotPrice) * 100;
+        const finalSpotPrice = (virtualUsdc - usdcOut) / newVirtualCorp;
+
+        resReceived.textContent = `$${usdcOut.toFixed(2)} USDC`;
+        resNewPrice.textContent = `$${Math.max(0, finalSpotPrice).toFixed(4)} USD`;
+        resSlippage.textContent = `${slippage.toFixed(1)}%`;
+
+        if (drained || usdcOut >= usdc * 0.95) {
+          simAlert.style.background = 'rgba(239, 68, 68, 0.25)';
+          simAlert.style.borderColor = '#ef4444';
+          simAlert.style.color = '#fca5a5';
+          simAlert.innerHTML = `🚨 <strong>¡COLAPSO TOTAL DE LIQUIDEZ!</strong> La orden de venta agotó el 100% de la reserva en dólares. La transacción de los siguientes usuarios revertirá y el precio cayó a cero.`;
+        } else if (Math.abs(slippage) > 20) {
+          simAlert.style.background = 'rgba(245, 158, 11, 0.25)';
+          simAlert.style.borderColor = '#f59e0b';
+          simAlert.style.color = '#fcd34d';
+          simAlert.innerHTML = `⚠️ <strong>Deslizamiento Severo (${slippage.toFixed(1)}%):</strong> Pérdida masiva por falta de profundidad real frente a la orden.`;
+        } else {
+          simAlert.style.background = 'rgba(16, 185, 129, 0.25)';
+          simAlert.style.borderColor = '#10b981';
+          simAlert.style.color = '#6ee7b7';
+          simAlert.innerHTML = `✓ <strong>Rango Estable:</strong> La concentración amortiguó el trade con deslizamiento controlado de ${slippage.toFixed(1)}%.`;
+        }
+      }
+
+      [inputSupply, inputUsdc, inputCorp, selectRange, inputSell].forEach(el => {
+        if (el) el.addEventListener('input', calculateSim);
+      });
+
+      calculateSim();
+
+      window.addEventListener('DOMContentLoaded', () => {
+        if (typeof renderMathInElement === 'function') {
+          renderMathInElement(document.body, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false}
+            ],
+            throwOnError: false
+          });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
