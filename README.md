@@ -10,6 +10,9 @@
 
 ## 📌 Descripción General
 
+> 🚀 **Presentación Interactiva en Vivo (GitHub Pages):**  
+> **[https://laalquimia.github.io/LiquidityPools/](https://laalquimia.github.io/LiquidityPools/)**
+
 Este repositorio contiene la presentación interactiva y el análisis cuantitativo sobre **Piscinas de Liquidez (Liquidity Pools)**, **Mecanismos de Formación de Precios en AMM vs. Economía Clásica**, **Tokenización de Empresas en Base (L2)** y **Liquidez Concentrada en Uniswap v3**.
 
 Diseñado para proyección académica en el **Laboratorio Financiero UdeA**, el material sintetiza en 10 diapositivas de alta fidelidad los principios de microestructura financiera descentralizada y capital efficiency.
